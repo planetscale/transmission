@@ -6,6 +6,8 @@ To specify a database URL to write data to, create a .env file with the followin
 DATABASE_URL=mysql://[USERNAME]:[PASSWORD]@[PORT]:3306/customer
 ```
 
+Then, apply init.sql in /sql.
+
 Then run `cargo install --path .` to build the executable.
  
 After that, simply run `transmission` to write data to MySQL.
