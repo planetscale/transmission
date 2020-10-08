@@ -1,5 +1,5 @@
 [package]
-name = "customer-writer"
+name = "transmission"
 version = "0.2.0"
 authors = ["Peter Farr <Peter@PrismaPhonic.com>, Liz van Dijk <lizztheblizz@gmail.com>, Abhi Vaidyanatha <abhivaidyanatha@gmail.com>"]
 edition = "2018"
