@@ -5,6 +5,7 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 use std::sync::atomic::Ordering;
 use super::{GLOBAL_COUNTER,CLIENT_POOL};
+use mysql::prelude::*;
 
 
 pub struct Customer {
@@ -42,7 +43,7 @@ impl CustomerRepo {
     }
 
     pub fn insert(&mut self, customer: &Customer) -> Result<(), mysql::Error> {
-        match self.conn.query(format!(
+        match self.conn.query_drop(format!(
             r"INSERT INTO customer (id, full_name, national_id, country) VALUES ('{}', '{}', '{}', '{}')",
             customer.id, customer.sql_name(), customer.national_id, customer.country,
         )) {
