@@ -3,7 +3,7 @@
 #### Usage
 To specify a database URL to write data to, create a .env file with the following format:
 ```
-DATABASE_URL=mysql://[USERNAME]:[PASSWORD]@[PORT]:3306/customer
+DATABASE_URL=mysql://[USERNAME]:[PASSWORD]@[HOST]:3306/[DATABASE]
 ```
 
 Then, apply init.sql in /sql.
