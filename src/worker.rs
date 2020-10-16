@@ -4,10 +4,11 @@ use std::sync::atomic::{Ordering, AtomicBool};
 
 use std::thread;
 use std::thread::JoinHandle;
-use crate::customer::{CustomerRepo, Customer};
+use crate::customer::{Customers, Customer, CustomersRetryWrapper};
 use crate::SUCC_QUERIES;
 use crate::ERR_QUERIES;
 use std::sync::Arc;
+use crate::repository::CustomerRepository;
 
 pub struct WorkerPool {
     pub workers: Vec<Worker>,
@@ -50,7 +51,7 @@ pub struct Worker {
 
 impl Worker {
     pub fn new(sleep_time: Duration, should_work: Arc<AtomicBool>) -> Worker {
-        let mut repo = CustomerRepo::new();
+        let mut repo = CustomersRetryWrapper::new(Customers::new());
 
         let thread = thread::spawn(move || loop {
             if !should_work.load(Ordering::Relaxed) {

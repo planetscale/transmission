@@ -22,6 +22,7 @@ lazy_static! {
 pub mod worker;
 pub mod customer;
 pub mod options;
+pub mod repository;
 
 pub fn run(config: Opts) -> Result<(), mysql::Error> {
     let start = Instant::now();

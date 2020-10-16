@@ -6,6 +6,9 @@ use rand::Rng;
 use std::sync::atomic::Ordering;
 use super::{GLOBAL_COUNTER,CLIENT_POOL};
 use mysql::prelude::*;
+use crate::repository::CustomerRepository;
+use std::thread::sleep;
+use std::time::Duration;
 
 
 pub struct Customer {
@@ -31,25 +34,51 @@ impl Customer {
     }
 }
 
-pub struct CustomerRepo {
+pub struct Customers {
     pub conn: mysql::PooledConn,
 }
 
-impl CustomerRepo {
-    pub fn new() -> CustomerRepo {
-        CustomerRepo {
+impl Customers {
+    pub fn new() -> Customers {
+        Customers {
             conn: CLIENT_POOL.get_conn().unwrap(),
         }
     }
+}
 
-    pub fn insert(&mut self, customer: &Customer) -> Result<(), mysql::Error> {
+impl CustomerRepository for Customers {
+    fn insert(&mut self, customer: &Customer) -> Result<u32, mysql::Error> {
         match self.conn.query_drop(format!(
             r"INSERT INTO customer (id, full_name, national_id, country) VALUES ('{}', '{}', '{}', '{}')",
             customer.id, customer.sql_name(), customer.national_id, customer.country,
         )) {
-            Ok(_) => Ok(()),
+            Ok(_) => Ok(customer.id),
             Err(e) => Err(e),
         }
+    }
+}
+
+pub struct CustomersRetryWrapper {
+    pub customers: Customers
+}
+
+impl CustomersRetryWrapper {
+    pub fn new(customers: Customers) -> CustomersRetryWrapper{
+        CustomersRetryWrapper {
+            customers,
+        }
+    }
+}
+
+impl CustomerRepository for CustomersRetryWrapper {
+    fn insert(&mut self, customer: &Customer) -> Result<u32, mysql::Error> {
+        for _ in 0..4 {
+            if let Ok(id) = self.customers.insert(customer) {
+                return Ok(id)
+            }
+            sleep(Duration::from_millis(50))
+        }
+        self.customers.insert(customer)
     }
 }
 
