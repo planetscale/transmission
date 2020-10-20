@@ -10,6 +10,7 @@ use crate::repository::CustomerRepository;
 use std::thread::sleep;
 use std::time::Duration;
 
+const CONNECTIVITY_RETRY_SECONDS: u64 = 1;
 
 pub struct Customer {
     pub id: u32,
@@ -72,11 +73,18 @@ impl CustomersRetryWrapper {
 
 impl CustomerRepository for CustomersRetryWrapper {
     fn insert(&mut self, customer: &Customer) -> Result<u32, mysql::Error> {
-        for _ in 0..4 {
-            if let Ok(id) = self.customers.insert(customer) {
-                return Ok(id)
+        for _ in 0..10 {
+            match self.customers.insert(customer) {
+                Ok(id) => return Ok(id),
+                Err(err) => {
+                    if err.is_connectivity_error() {
+                        println!("Failed to connect to mysql endpoint. Retrying in {} seconds.", CONNECTIVITY_RETRY_SECONDS)
+                    } else {
+                        println!("Non-connectivity error: {}; Retrying in {} seconds.", err, CONNECTIVITY_RETRY_SECONDS)
+                    }
+                },
             }
-            sleep(Duration::from_millis(50))
+            sleep(Duration::from_secs(CONNECTIVITY_RETRY_SECONDS))
         }
         self.customers.insert(customer)
     }
